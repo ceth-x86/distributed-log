@@ -1,11 +1,12 @@
 package log
 
 import (
-	log_v1 "distributed/WriteALogPackage/api/v1"
 	"fmt"
-	"github.com/gogo/protobuf/proto"
 	"os"
 	"path"
+
+	log_v1 "distributed/WriteALogPackage/api/log.v1"
+	"google.golang.org/protobuf/proto"
 )
 
 type segment struct {

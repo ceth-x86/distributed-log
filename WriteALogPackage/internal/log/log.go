@@ -1,8 +1,6 @@
 package log
 
 import (
-	log_v1 "distributed/WriteALogPackage/api/v1"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	log_v1 "distributed/WriteALogPackage/api/log.v1"
 )
 
 type Log struct {
@@ -88,7 +88,7 @@ func (l *Log) Read(off uint64) (*log_v1.Record, error) {
 		}
 	}
 	if s == nil || s.nextOffset <= off {
-		return nil, fmt.Errorf("offset out of range: %d", off)
+		return nil, log_v1.ErrOffsetOutOfRange{Offset: off}
 	}
 	return s.Read(off)
 }
