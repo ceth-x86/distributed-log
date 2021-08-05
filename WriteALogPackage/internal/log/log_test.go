@@ -1,12 +1,12 @@
 package log
 
 import (
-	log_v1 "distributed/WriteALogPackage/api/v1"
 	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/gogo/protobuf/proto"
+	log_v1 "distributed/WriteALogPackage/api/log.v1"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/stretchr/testify/require"
 )
@@ -45,13 +45,15 @@ func testAppendRead(t *testing.T, log *Log) {
 
 	read, err := log.Read(off)
 	require.NoError(t, err)
-	require.Equal(t, append, read)
+	require.Equal(t, append.Value, read.Value)
+	require.Equal(t, append.Offset, read.Offset)
 }
 
 func testOutOfRangeErr(t *testing.T, log *Log) {
 	read, err := log.Read(1)
 	require.Nil(t, read)
-	require.Error(t, err)
+	apiErr := err.(log_v1.ErrOffsetOutOfRange)
+	require.Error(t, apiErr)
 }
 
 func testInitExisting(t *testing.T, o *Log) {
@@ -98,7 +100,8 @@ func testReader(t *testing.T, log *Log) {
 	read := &log_v1.Record{}
 	err = proto.Unmarshal(b[lenWidth:], read)
 	require.NoError(t, err)
-	require.Equal(t, append, read)
+	require.Equal(t, append.Value, read.Value)
+	require.Equal(t, append.Offset, read.Offset)
 }
 
 func testTruncate(t *testing.T, log *Log) {

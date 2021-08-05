@@ -1,2 +1,2 @@
 compile:
-	protoc api/v1/*.proto --gofast_out=.
+	protoc api/log.v1/*.proto --go_out=plugins=grpc:.
