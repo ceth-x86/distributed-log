@@ -6,6 +6,8 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/go.net v0.0.1 // indirect
 	github.com/hashicorp/memberlist v0.2.4 // indirect
+	github.com/hashicorp/raft v1.3.1 // indirect
+	github.com/hashicorp/raft-boltdb v0.0.0-20210422161416-485fa74b0b01 // indirect
 	github.com/hashicorp/serf v0.9.5 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/travisjeffery/go-dynaport v1.0.0 // indirect
