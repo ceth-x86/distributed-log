@@ -5,7 +5,8 @@ import (
 	"os"
 	"testing"
 
-	log_v1 "distributed/WriteALogPackage/api/log.v1"
+	log_v12 "distributed/api/log.v1"
+
 	"google.golang.org/protobuf/proto"
 
 	"github.com/stretchr/testify/require"
@@ -36,7 +37,7 @@ func TestLog(t *testing.T) {
 }
 
 func testAppendRead(t *testing.T, log *Log) {
-	append := &log_v1.Record{
+	append := &log_v12.Record{
 		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
@@ -52,12 +53,12 @@ func testAppendRead(t *testing.T, log *Log) {
 func testOutOfRangeErr(t *testing.T, log *Log) {
 	read, err := log.Read(1)
 	require.Nil(t, read)
-	apiErr := err.(log_v1.ErrOffsetOutOfRange)
+	apiErr := err.(log_v12.ErrOffsetOutOfRange)
 	require.Error(t, apiErr)
 }
 
 func testInitExisting(t *testing.T, o *Log) {
-	append := &log_v1.Record{
+	append := &log_v12.Record{
 		Value: []byte("hello world"),
 	}
 
@@ -86,7 +87,7 @@ func testInitExisting(t *testing.T, o *Log) {
 }
 
 func testReader(t *testing.T, log *Log) {
-	append := &log_v1.Record{
+	append := &log_v12.Record{
 		Value: []byte("hello world"),
 	}
 	off, err := log.Append(append)
@@ -97,7 +98,7 @@ func testReader(t *testing.T, log *Log) {
 	b, err := ioutil.ReadAll(reader)
 	require.NoError(t, err)
 
-	read := &log_v1.Record{}
+	read := &log_v12.Record{}
 	err = proto.Unmarshal(b[lenWidth:], read)
 	require.NoError(t, err)
 	require.Equal(t, append.Value, read.Value)
@@ -105,7 +106,7 @@ func testReader(t *testing.T, log *Log) {
 }
 
 func testTruncate(t *testing.T, log *Log) {
-	append := &log_v1.Record{
+	append := &log_v12.Record{
 		Value: []byte("hello world"),
 	}
 	for i := 0; i < 3; i++ {

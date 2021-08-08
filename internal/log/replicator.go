@@ -5,7 +5,8 @@ import (
 	"log"
 	"sync"
 
-	api "distributed/WriteALogPackage/api/log.v1"
+	api "distributed/api/log.v1"
+
 	"google.golang.org/grpc"
 )
 

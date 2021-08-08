@@ -6,7 +6,8 @@ import (
 	"os"
 	"testing"
 
-	log_v1 "distributed/WriteALogPackage/api/log.v1"
+	log_v1 "distributed/api/log.v1"
+
 	"github.com/stretchr/testify/require"
 )
 

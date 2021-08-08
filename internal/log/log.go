@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	log_v1 "distributed/WriteALogPackage/api/log.v1"
+	log_v12 "distributed/api/log.v1"
 )
 
 type Log struct {
@@ -63,7 +63,7 @@ func NewLog(dir string, c Config) (*Log, error) {
 	return l, nil
 }
 
-func (l *Log) Append(record *log_v1.Record) (uint64, error) {
+func (l *Log) Append(record *log_v12.Record) (uint64, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -77,7 +77,7 @@ func (l *Log) Append(record *log_v1.Record) (uint64, error) {
 	return off, err
 }
 
-func (l *Log) Read(off uint64) (*log_v1.Record, error) {
+func (l *Log) Read(off uint64) (*log_v12.Record, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	var s *segment
@@ -88,7 +88,7 @@ func (l *Log) Read(off uint64) (*log_v1.Record, error) {
 		}
 	}
 	if s == nil || s.nextOffset <= off {
-		return nil, log_v1.ErrOffsetOutOfRange{Offset: off}
+		return nil, log_v12.ErrOffsetOutOfRange{Offset: off}
 	}
 	return s.Read(off)
 }
