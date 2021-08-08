@@ -2,18 +2,18 @@ package server
 
 import (
 	"context"
-	"distributed/WriteALogPackage/internal/log"
+	"distributed/internal/log"
+
+	log_v1 "distributed/api/log.v1"
 
 	"google.golang.org/grpc"
-
-	api "distributed/WriteALogPackage/api/log.v1"
 )
 
-var _ api.LogServer = (*grpcServer)(nil)
+var _ log_v1.LogServer = (*grpcServer)(nil)
 
 type CommitLog interface {
-	Append(record api.Record) (uint64, error)
-	Read(uint64) (*api.Record, error)
+	Append(record log_v1.Record) (uint64, error)
+	Read(uint64) (*log_v1.Record, error)
 }
 
 type Config struct {
@@ -37,30 +37,30 @@ func NewGRPCServer(config *Config) (*grpc.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	api.RegisterLogServer(gsrv, srv)
+	log_v1.RegisterLogServer(gsrv, srv)
 	return gsrv, nil
 }
 
-func (s *grpcServer) Produce(ctx context.Context, req *api.ProduceRequest) (
-	*api.ProduceResponse, error) {
+func (s *grpcServer) Produce(ctx context.Context, req *log_v1.ProduceRequest) (
+	*log_v1.ProduceResponse, error) {
 	offset, err := s.CommitLog.Append(req.Record)
 	if err != nil {
 		return nil, err
 	}
-	return &api.ProduceResponse{Offset: offset}, nil
+	return &log_v1.ProduceResponse{Offset: offset}, nil
 }
 
-func (s *grpcServer) Consume(ctx context.Context, req *api.ConsumeRequest) (
-	*api.ConsumeResponse, error) {
+func (s *grpcServer) Consume(ctx context.Context, req *log_v1.ConsumeRequest) (
+	*log_v1.ConsumeResponse, error) {
 	record, err := s.CommitLog.Read(req.Offset)
 	if err != nil {
 		return nil, err
 	}
-	return &api.ConsumeResponse{Record: record}, nil
+	return &log_v1.ConsumeResponse{Record: record}, nil
 }
 
 func (s *grpcServer) ProduceStream(
-	stream api.Log_ProduceStreamServer,
+	stream log_v1.Log_ProduceStreamServer,
 ) error {
 	for {
 		req, err := stream.Recv()
@@ -78,8 +78,8 @@ func (s *grpcServer) ProduceStream(
 }
 
 func (s *grpcServer) ConsumeStream(
-	req *api.ConsumeRequest,
-	stream api.Log_ConsumeStreamServer,
+	req *log_v1.ConsumeRequest,
+	stream log_v1.Log_ConsumeStreamServer,
 ) error {
 	for {
 		select {
@@ -89,7 +89,7 @@ func (s *grpcServer) ConsumeStream(
 			res, err := s.Consume(stream.Context(), req)
 			switch err.(type) {
 			case nil:
-			case api.ErrOffsetOutOfRange:
+			case log_v1.ErrOffsetOutOfRange:
 				continue
 			default:
 				return err

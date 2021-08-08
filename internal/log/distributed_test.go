@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	api "distributed/WriteALogPackage/api/log.v1"
+	log_v1 "distributed/api/log.v1"
 
 	"github.com/hashicorp/raft"
 
@@ -56,7 +56,7 @@ func TestMultipleNodes(t *testing.T) {
 		logs = append(logs, l)
 	}
 
-	records := []*api.Record{
+	records := []*log_v1.Record{
 		{Value: []byte("first")},
 		{Value: []byte("second")},
 	}
@@ -84,7 +84,7 @@ func TestMultipleNodes(t *testing.T) {
 
 	time.Sleep(50 * time.Millisecond)
 
-	off, err := logs[0].Append(&api.Record{
+	off, err := logs[0].Append(&log_v1.Record{
 		Value: []byte("third"),
 	})
 	require.NoError(t, err)
@@ -92,12 +92,12 @@ func TestMultipleNodes(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	record, err := logs[1].Read(off)
-	require.IsType(t, api.ErrOffsetOutOfRange{}, err)
+	require.IsType(t, log_v1.ErrOffsetOutOfRange{}, err)
 	require.Nil(t, record)
 
 	record, err = logs[2].Read(off)
 	require.NoError(t, err)
-	require.Equal(t, &api.Record{
+	require.Equal(t, &log_v1.Record{
 		Value:  []byte("third"),
 		Offset: off,
 	}, record)

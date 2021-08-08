@@ -5,7 +5,8 @@ import (
 	"os"
 	"path"
 
-	log_v1 "distributed/WriteALogPackage/api/log.v1"
+	log_v1 "distributed/api/log.v1"
+
 	"google.golang.org/protobuf/proto"
 )
 

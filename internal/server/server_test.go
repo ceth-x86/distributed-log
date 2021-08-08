@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
-	"distributed/WriteALogPackage/internal/log"
+	log2 "distributed/internal/log"
 	"io/ioutil"
 	"net"
 	"testing"
 
+	log_v1 "distributed/api/log.v1"
+
 	"google.golang.org/grpc/status"
 
-	api "distributed/WriteALogPackage/api/log.v1"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 )
@@ -17,7 +18,7 @@ import (
 func TestServer(t *testing.T) {
 	for scenario, fn := range map[string]func(
 		t *testing.T,
-		client api.LogClient,
+		client log_v1.LogClient,
 		config *Config,
 	){
 		"produce/consume a message to/from the log succeded": testProduceConsume,
@@ -33,7 +34,7 @@ func TestServer(t *testing.T) {
 }
 
 func setupTest(t *testing.T, fn func(config *Config)) (
-	client api.LogClient,
+	client log_v1.LogClient,
 	config *Config,
 	teardown func(),
 ) {
@@ -49,7 +50,7 @@ func setupTest(t *testing.T, fn func(config *Config)) (
 	dir, err := ioutil.TempDir("", "server-test")
 	require.NoError(t, err)
 
-	clog, err := log.NewLog(dir, log.Config{})
+	clog, err := log2.NewLog(dir, log2.Config{})
 	require.NoError(t, err)
 
 	config = &Config{
@@ -64,7 +65,7 @@ func setupTest(t *testing.T, fn func(config *Config)) (
 	go func() {
 		server.Serve(l)
 	}()
-	client = api.NewLogClient(cc)
+	client = log_v1.NewLogClient(cc)
 	return client, config, func() {
 		server.Stop()
 		cc.Close()
@@ -73,20 +74,20 @@ func setupTest(t *testing.T, fn func(config *Config)) (
 	}
 }
 
-func testProduceConsume(t *testing.T, client api.LogClient, config *Config) {
+func testProduceConsume(t *testing.T, client log_v1.LogClient, config *Config) {
 	ctx := context.Background()
-	want := &api.Record{
+	want := &log_v1.Record{
 		Value: []byte("hello world"),
 	}
 	produce, err := client.Produce(
 		context.Background(),
-		&api.ProduceRequest{
+		&log_v1.ProduceRequest{
 			Record: want,
 		},
 	)
 	require.NoError(t, err)
 
-	consume, err := client.Consume(ctx, &api.ConsumeRequest{
+	consume, err := client.Consume(ctx, &log_v1.ConsumeRequest{
 		Offset: produce.Offset,
 	})
 	require.NoError(t, err)
@@ -96,25 +97,25 @@ func testProduceConsume(t *testing.T, client api.LogClient, config *Config) {
 
 func testConsumePastBoundary(
 	t *testing.T,
-	client api.LogClient,
+	client log_v1.LogClient,
 	config *Config,
 ) {
 	ctx := context.Background()
-	produce, err := client.Produce(ctx, &api.ProduceRequest{
-		Record: &api.Record{
+	produce, err := client.Produce(ctx, &log_v1.ProduceRequest{
+		Record: &log_v1.Record{
 			Value: []byte("hello world"),
 		},
 	})
 	require.NoError(t, err)
 
-	consume, err := client.Consume(ctx, &api.ConsumeRequest{
+	consume, err := client.Consume(ctx, &log_v1.ConsumeRequest{
 		Offset: produce.Offset + 1,
 	})
 	if consume != nil {
 		t.Fatal("consume not nil")
 	}
 	got := status.Code(err)
-	want := status.Code(api.ErrOffsetOutOfRange{}.GRPCStatus().Err())
+	want := status.Code(log_v1.ErrOffsetOutOfRange{}.GRPCStatus().Err())
 	if got != want {
 		t.Fatalf("got err: %v, want: %v", got, want)
 	}
@@ -122,11 +123,11 @@ func testConsumePastBoundary(
 
 func testProduceConsumeStream(
 	t *testing.T,
-	client api.LogClient,
+	client log_v1.LogClient,
 	config *Config,
 ) {
 	ctx := context.Background()
-	records := []*api.Record{{
+	records := []*log_v1.Record{{
 		Value:  []byte("first message"),
 		Offset: 0,
 	}, {
@@ -138,7 +139,7 @@ func testProduceConsumeStream(
 		require.NoError(t, err)
 
 		for offset, record := range records {
-			err = stream.Send(&api.ProduceRequest{
+			err = stream.Send(&log_v1.ProduceRequest{
 				Record: record,
 			})
 			require.NoError(t, err)
@@ -156,7 +157,7 @@ func testProduceConsumeStream(
 	{
 		stream, err := client.ConsumeStream(
 			ctx,
-			&api.ConsumeRequest{Offset: 0},
+			&log_v1.ConsumeRequest{Offset: 0},
 		)
 		require.NoError(t, err)
 

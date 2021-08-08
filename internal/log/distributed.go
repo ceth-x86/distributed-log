@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"google.golang.org/protobuf/proto"
+	api "distributed/api/log.v1"
 
-	api "distributed/WriteALogPackage/api/log.v1"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/hashicorp/raft"
 

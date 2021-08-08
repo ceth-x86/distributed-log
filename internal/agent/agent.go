@@ -1,14 +1,14 @@
 package agent
 
 import (
-	"distributed/WriteALogPackage/internal/discovery"
-	"distributed/WriteALogPackage/internal/log"
-	"distributed/WriteALogPackage/internal/server"
+	"distributed/internal/discovery"
+	log2 "distributed/internal/log"
+	"distributed/internal/server"
 	"fmt"
 	"net"
 	"sync"
 
-	api "distributed/WriteALogPackage/api/log.v1"
+	api "distributed/api/log.v1"
 
 	"google.golang.org/grpc"
 )
@@ -32,10 +32,10 @@ func (c Config) RPCAddr() (string, error) {
 type Agent struct {
 	Config
 
-	log        *log.Log
+	log        *log2.Log
 	server     *grpc.Server
 	membership *discovery.Membership
-	replicator *log.Replicator
+	replicator *log2.Replicator
 
 	shutdown     bool
 	shutdowns    chan struct{}
@@ -62,9 +62,9 @@ func New(config Config) (*Agent, error) {
 
 func (a *Agent) setupLog() error {
 	var err error
-	a.log, err = log.NewLog(
+	a.log, err = log2.NewLog(
 		a.Config.DataDir,
-		log.Config{},
+		log2.Config{},
 	)
 	return err
 }
@@ -105,7 +105,7 @@ func (a *Agent) setupMembership() error {
 		return err
 	}
 	client := api.NewLogClient(conn)
-	a.replicator = &log.Replicator{
+	a.replicator = &log2.Replicator{
 		LocalServer: client,
 	}
 	a.membership, err = discovery.New(a.replicator, discovery.Config{
