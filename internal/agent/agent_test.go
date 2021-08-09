@@ -60,6 +60,8 @@ func TestAgent(t *testing.T) {
 			},
 		})
 	require.NoError(t, err)
+
+	time.Sleep(3 * time.Second)
 	consumeResponse, err := leaderClient.Consume(
 		context.Background(),
 		&api.ConsumeRequest{
@@ -86,7 +88,10 @@ func client(t *testing.T,
 	rpcAddr, err := agent.Config.RPCAddr()
 	require.NoError(t, err)
 	clientOptions := []grpc.DialOption{grpc.WithInsecure()}
-	conn, err := grpc.Dial(fmt.Sprintf("%s", rpcAddr), clientOptions...)
+	conn, err := grpc.Dial(
+		// fmt.Sprintf("%s:///%s", loadbalance.Name, rpcAddr), clientOptions...,
+		fmt.Sprintf("%s", rpcAddr), clientOptions...,
+	)
 	require.NoError(t, err)
 	client := api.NewLogClient(conn)
 	return client
